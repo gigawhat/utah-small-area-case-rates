@@ -2,6 +2,7 @@
 
 from flask import Flask, jsonify
 from requests.exceptions import HTTPError
+from bs4 import BeautifulSoup
 import json
 import os
 import re
@@ -16,23 +17,21 @@ def get_cases():
     try:
         r = requests.get(url)
         r.raise_for_status()
-        for line in r.text.splitlines():
-            if 'data-for="htmlwidget-6bc80ecf58dffc13636e"' in line:
-                line = line.replace('<script type="application/json" data-for="htmlwidget-6bc80ecf58dffc13636e">', '')
-                line = line.replace('</script>', '')
-                rates = json.loads(line)['x']['calls'][1]['args'][4]
-                for i in rates:
-                    i = i.replace('<strong>Name: </strong>', '')
-                    i = i.replace('<br><b>Case Count:</b> ', ',')
-                    i = i.replace('<br><b>Case Rate / 100,000:</b> ', ',')
-                    i = re.sub(r"^\d.*-\d*\.\d |^\d.*-\d* ", "", i)
-                    i = i.split(',')
-                    rate = {
-                        'area': i[0],
-                        'case_count': i[1],
-                        'case_rate': i[2]
-                    }
-                    data.append(rate)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        draper = soup.find(string=re.compile("Draper"))
+        rates = json.loads(draper)['x']['calls'][1]['args'][4]
+        for i in rates:
+            i = i.replace('<strong>Name: </strong>', '')
+            i = i.replace('<br><b>Case Count:</b> ', ',')
+            i = i.replace('<br><b>Case Rate / 100,000:</b> ', ',')
+            i = re.sub(r"^\d.*-\d*\.\d |^\d.*-\d* ", "", i)
+            i = i.split(',')
+            rate = {
+                'area': i[0],
+                'case_count': i[1],
+                'case_rate': i[2]
+            }
+            data.append(rate)
         return True, data
     except HTTPError as http_err:
         print(f'HTTP error occurred: {http_err}')
