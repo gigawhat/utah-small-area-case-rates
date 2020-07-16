@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask
+from flask import Flask, jsonify
 import json
 import os
 import re
@@ -35,7 +35,7 @@ def get_cases():
 
 @app.route("/")
 def main():
-    return(json.dumps(get_cases()))
+    return(jsonify(get_cases()))
 
 
 if __name__ == "__main__":
