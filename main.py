@@ -26,11 +26,19 @@ def get_cases():
             i = i.replace('<br><b>Case Rate / 100,000:</b> ', ',')
             i = re.sub(r"^\d.*-\d*\.\d |^\d.*-\d* ", "", i)
             i = i.split(',')
+
             rate = {
                 'area': i[0],
                 'case_count': i[1],
                 'case_rate': i[2]
             }
+
+            if 'Data Note' in rate['case_rate']:
+                note = rate['case_rate'].split('<br>')[1]
+                note = re.sub(r"<b>Data Note:</b> ", "", note)
+                rate['case_note'] = note
+                rate['case_rate'] = re.sub(r"<br><b>Data Note:</b>.*", "", rate['case_rate'])
+
             data.append(rate)
         return True, data
     except HTTPError as http_err:
