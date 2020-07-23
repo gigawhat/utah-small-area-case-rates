@@ -9,6 +9,7 @@ import re
 import requests
 
 app = Flask(__name__)
+app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 
 
 def get_cases():
